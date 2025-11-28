@@ -26,7 +26,10 @@ process mark_duplicates {
     M=${bam.simpleName}.markdup.metrics.txt \
     REMOVE_DUPLICATES=false \
     ASSUME_SORTED=true \
-    VALIDATION_STRINGENCY=SILENT
+    VALIDATION_STRINGENCY=SILENT \
+    MAX_RECORDS_IN_RAM=250000 \
+    TMP_DIR=/tmp
+
   """
 }
 
