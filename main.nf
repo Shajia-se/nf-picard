@@ -14,8 +14,7 @@ process mark_duplicates {
     path bam
 
   output:
-    path "${bam.simpleName}.markdup.bam"
-    path "${bam.simpleName}.markdup.metrics.txt"
+    tuple val(bam.simpleName), path("${bam.simpleName}.markdup.bam")
 
   script:
   """
