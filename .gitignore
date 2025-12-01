@@ -22,6 +22,7 @@ bwa_output/
 fastqc_output/
 cutadapt_output/
 multiqc_output/
+picard_output/
 
 # Large data folders
 data/
