@@ -42,7 +42,7 @@ process insert_size {
   publishDir "${params.project_folder}/${picard_output}", mode: 'copy'
 
   input:
-    tuple val(sample_id), path bam
+    tuple val(sample_id), path(bam)
 
   output:
     path "${bam.simpleName}.insert_size.txt"
@@ -68,7 +68,7 @@ process alignment_summary {
   publishDir "${params.project_folder}/${picard_output}", mode: 'copy'
 
   input:
-    tuple val(sample_id), path bam
+      tuple val(sample_id), path(bam)
 
   output:
     path "${bam.simpleName}.align_summary.txt"
