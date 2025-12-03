@@ -82,8 +82,3 @@ nf-picard/
 * Standardized BAM QC (duplicates + fragment size + alignment quality)
 * Picard-compatible outputs for ENCODE-style workflows
 * Clean inputs for `nf-chipfilter` and MACS2/3 peak calling
-
-
----
-
-如果你愿意，我可以继续帮你做一个 **三条 pipeline 的统一文档**（mapping → QC → filtering）让整个流程更清晰。
