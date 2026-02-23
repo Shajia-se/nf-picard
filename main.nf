@@ -133,6 +133,9 @@ workflow {
   def outdir = "${params.project_folder}/${picard_output}"
   def target_suffix = do_dedup ? ".dedup.bam" : ".markdup.bam"
   def selectedSamples = null as Set
+  def sampleMatches = { name, sid ->
+    name == sid || name.startsWith("${sid}_")
+  }
 
   if (params.samples_master) {
     def master = file(params.samples_master)
@@ -160,7 +163,8 @@ workflow {
     .fromPath("${params.bwa_output}/*.sorted.bam")
     .filter { bam ->
       if (selectedSamples == null) return true
-      selectedSamples.contains(bam.simpleName.replaceFirst(/\.sorted$/, ''))
+      def base = bam.simpleName.replaceFirst(/\.sorted$/, '')
+      selectedSamples.any { sid -> sampleMatches(base, sid as String) }
     }
     .filter { bam ->
       ! file("${outdir}/${bam.simpleName}${target_suffix}").exists()
