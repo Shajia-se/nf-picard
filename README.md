@@ -16,6 +16,7 @@ For each input `*.sorted.bam` from `nf-bwa`:
 
 - Directory: `params.bwa_output`
 - Pattern: `*.sorted.bam`
+- Optional: `params.samples_master` (CSV with `sample_id`, optional `enabled`) to restrict which samples are processed
 
 ## Output
 
@@ -36,6 +37,7 @@ Under `${project_folder}/${picard_output}`:
 ## Key Parameters
 
 - `bwa_output`: input BAM folder
+- `samples_master`: optional sample whitelist source
 - `picard_output`: output folder name
 - `remove_duplicates`: whether to produce/use deduplicated BAM (default: `true`)
 - `cpus`, `memory`, `time`: compute resources
@@ -54,6 +56,14 @@ Disable duplicate removal:
 
 ```bash
 nextflow run main.nf -profile hpc --remove_duplicates false
+```
+
+With sample restriction:
+
+```bash
+nextflow run main.nf -profile hpc \
+  --bwa_output /path/to/nf-bwa/bwa_output \
+  --samples_master /path/to/samples_master.csv
 ```
 
 Resume:

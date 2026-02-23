@@ -132,9 +132,36 @@ workflow {
 
   def outdir = "${params.project_folder}/${picard_output}"
   def target_suffix = do_dedup ? ".dedup.bam" : ".markdup.bam"
+  def selectedSamples = null as Set
+
+  if (params.samples_master) {
+    def master = file(params.samples_master)
+    assert master.exists() : "samples_master not found: ${params.samples_master}"
+
+    selectedSamples = [] as Set
+    master.eachLine { line, n ->
+      if (n == 1) return
+      if (!line?.trim()) return
+      def cols = line.split(',', -1)*.trim()
+      if (cols.size() < 1) return
+
+      def sid = cols[0]
+      if (!sid) return
+
+      def enabled = cols.size() > 10 ? cols[10]?.toLowerCase() : ''
+      if (enabled == '' || enabled == 'true') {
+        selectedSamples << sid
+      }
+    }
+    assert !selectedSamples.isEmpty() : "No enabled sample_id found in samples_master: ${params.samples_master}"
+  }
 
   def sorted_bams = Channel
     .fromPath("${params.bwa_output}/*.sorted.bam")
+    .filter { bam ->
+      if (selectedSamples == null) return true
+      selectedSamples.contains(bam.simpleName.replaceFirst(/\.sorted$/, ''))
+    }
     .filter { bam ->
       ! file("${outdir}/${bam.simpleName}${target_suffix}").exists()
     }
