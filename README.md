@@ -5,9 +5,10 @@
 ## What This Module Does
 
 For each input `*.sorted.bam` from `nf-bwa`:
-1. Runs `MarkDuplicates` (always) to generate `*.markdup.bam` and duplicate metrics.
-2. Optionally removes duplicates (`remove_duplicates=true`) to generate `*.dedup.bam` + index.
-3. Runs Picard QC on the selected BAM (dedup if enabled, otherwise markdup):
+1. Runs `MarkDuplicates` once:
+   - `remove_duplicates=true` (default): generate `*.dedup.bam` + index + metrics
+   - `remove_duplicates=false`: generate `*.markdup.bam` + index + metrics
+2. Runs Picard QC on the selected BAM:
    - `CollectInsertSizeMetrics`
    - `CollectAlignmentSummaryMetrics`
 
@@ -19,13 +20,14 @@ For each input `*.sorted.bam` from `nf-bwa`:
 ## Output
 
 Under `${project_folder}/${picard_output}`:
-- always:
-  - `${sample}.markdup.bam`
-  - `${sample}.markdup.metrics.txt`
 - when `remove_duplicates=true` (default):
   - `${sample}.dedup.bam`
   - `${sample}.dedup.bam.bai`
   - `${sample}.dedup.metrics.txt`
+- when `remove_duplicates=false`:
+  - `${sample}.markdup.bam`
+  - `${sample}.markdup.bam.bai`
+  - `${sample}.markdup.metrics.txt`
 - QC reports (based on selected BAM):
   - `${sample}.insert_size.txt`
   - `${sample}.insert_size.pdf`
@@ -64,6 +66,7 @@ nextflow run main.nf -profile hpc -resume
 
 - This module is designed to feed `nf-chipfilter`.
 - `nf-chipfilter` can prioritize `*.dedup.bam` (recommended) and fall back to `*.markdup.bam`.
+- Temporary files are written under the task work directory (`$PWD/tmp`) to avoid shared `/tmp` space issues.
 
 ## Project Structure
 

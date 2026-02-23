@@ -17,11 +17,13 @@ process mark_duplicates {
   output:
     tuple val(bam.simpleName),
           path("${bam.simpleName}.markdup.bam"),
+          path("${bam.simpleName}.markdup.bam.bai"),
           path("${bam.simpleName}.markdup.metrics.txt")
 
   script:
   """
   set -eux
+  mkdir -p tmp
 
   picard MarkDuplicates \
     I=${bam} \
@@ -31,43 +33,48 @@ process mark_duplicates {
     ASSUME_SORTED=true \
     VALIDATION_STRINGENCY=SILENT \
     MAX_RECORDS_IN_RAM=250000 \
-    TMP_DIR=/tmp
+    TMP_DIR=$PWD/tmp
 
+  picard BuildBamIndex \
+    I=${bam.simpleName}.markdup.bam \
+    O=${bam.simpleName}.markdup.bam.bai
   """
 }
 
 process dedup_bam {
-  tag "${sample_id}"
+  tag "${bam.simpleName}"
   stageInMode  'symlink'
   stageOutMode 'move'
 
   publishDir "${params.project_folder}/${picard_output}", mode: 'copy'
 
   input:
-    tuple val(sample_id), path(markdup_bam), path(markdup_metrics)
+    path bam
 
   output:
-    tuple val(sample_id),
-          path("${sample_id}.dedup.bam"),
-          path("${sample_id}.dedup.bam.bai")
+    tuple val(bam.simpleName),
+          path("${bam.simpleName}.dedup.bam"),
+          path("${bam.simpleName}.dedup.bam.bai"),
+          path("${bam.simpleName}.dedup.metrics.txt")
 
   script:
   """
   set -eux
+  mkdir -p tmp
 
   picard MarkDuplicates \
-    I=${markdup_bam} \
-    O=${sample_id}.dedup.bam \
-    M=${sample_id}.dedup.metrics.txt \
+    I=${bam} \
+    O=${bam.simpleName}.dedup.bam \
+    M=${bam.simpleName}.dedup.metrics.txt \
     REMOVE_DUPLICATES=true \
     ASSUME_SORTED=true \
     VALIDATION_STRINGENCY=SILENT \
     MAX_RECORDS_IN_RAM=250000 \
-    TMP_DIR=/tmp
+    TMP_DIR=$PWD/tmp
 
   picard BuildBamIndex \
-    I=${sample_id}.dedup.bam \
-    O=${sample_id}.dedup.bam.bai
+    I=${bam.simpleName}.dedup.bam \
+    O=${bam.simpleName}.dedup.bam.bai
   """
 }
 
@@ -132,10 +139,9 @@ workflow {
       ! file("${outdir}/${bam.simpleName}${target_suffix}").exists()
     }
 
-  def marked = mark_duplicates(sorted_bams)
   def report_input = do_dedup \
-    ? dedup_bam(marked).map { sample_id, bam, bai -> tuple(sample_id, bam) } \
-    : marked.map { sample_id, bam, metrics -> tuple(sample_id, bam) }
+    ? dedup_bam(sorted_bams).map { sample_id, bam, bai, metrics -> tuple(sample_id, bam) } \
+    : mark_duplicates(sorted_bams).map { sample_id, bam, bai, metrics -> tuple(sample_id, bam) }
 
   insert_size(report_input)
 
