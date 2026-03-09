@@ -24,6 +24,10 @@ process mark_duplicates {
   """
   set -eux
   mkdir -p tmp
+  export TMPDIR=$PWD/tmp
+  export TEMP=$PWD/tmp
+  export TMP=$PWD/tmp
+  export _JAVA_OPTIONS="-Djava.io.tmpdir=$PWD/tmp"
 
   picard MarkDuplicates \
     I=${bam} \
@@ -61,6 +65,10 @@ process dedup_bam {
   """
   set -eux
   mkdir -p tmp
+  export TMPDIR=$PWD/tmp
+  export TEMP=$PWD/tmp
+  export TMP=$PWD/tmp
+  export _JAVA_OPTIONS="-Djava.io.tmpdir=$PWD/tmp"
 
   picard MarkDuplicates \
     I=${bam} \
@@ -96,6 +104,11 @@ process insert_size {
   script:
   """
   set -eux
+  mkdir -p tmp
+  export TMPDIR=$PWD/tmp
+  export TEMP=$PWD/tmp
+  export TMP=$PWD/tmp
+  export _JAVA_OPTIONS="-Djava.io.tmpdir=$PWD/tmp"
 
   picard CollectInsertSizeMetrics \
     I=${bam} \
@@ -121,6 +134,11 @@ process alignment_summary {
   script:
   """
   set -eux
+  mkdir -p tmp
+  export TMPDIR=$PWD/tmp
+  export TEMP=$PWD/tmp
+  export TMP=$PWD/tmp
+  export _JAVA_OPTIONS="-Djava.io.tmpdir=$PWD/tmp"
 
   picard CollectAlignmentSummaryMetrics \
     I=${bam} \
