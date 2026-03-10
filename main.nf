@@ -105,10 +105,10 @@ process insert_size {
   """
   set -eux
   mkdir -p tmp
-  export TMPDIR=$PWD/tmp
-  export TEMP=$PWD/tmp
-  export TMP=$PWD/tmp
-  export _JAVA_OPTIONS="-Djava.io.tmpdir=$PWD/tmp"
+  export TMPDIR=\$PWD/tmp
+  export TEMP=\$PWD/tmp
+  export TMP=\$PWD/tmp
+  export _JAVA_OPTIONS="-Djava.io.tmpdir=\$PWD/tmp"
 
   picard CollectInsertSizeMetrics \
     I=${bam} \
