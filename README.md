@@ -25,10 +25,12 @@ Under `${project_folder}/${picard_output}`:
   - `${sample}.dedup.bam`
   - `${sample}.dedup.bam.bai`
   - `${sample}.dedup.metrics.txt`
+  - `${sample}.picard_qc.stats.tsv`
 - when `remove_duplicates=false`:
   - `${sample}.markdup.bam`
   - `${sample}.markdup.bam.bai`
   - `${sample}.markdup.metrics.txt`
+  - `${sample}.picard_qc.stats.tsv`
 - QC reports (based on selected BAM):
   - `${sample}.insert_size.txt`
   - `${sample}.insert_size.pdf`

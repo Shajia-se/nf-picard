@@ -18,7 +18,8 @@ process mark_duplicates {
     tuple val(bam.simpleName),
           path("${bam.simpleName}.markdup.bam"),
           path("${bam.simpleName}.markdup.bam.bai"),
-          path("${bam.simpleName}.markdup.metrics.txt")
+          path("${bam.simpleName}.markdup.metrics.txt"),
+          path("${bam.simpleName}.picard_qc.stats.tsv")
 
   script:
   """
@@ -42,6 +43,19 @@ process mark_duplicates {
   picard BuildBamIndex \
     I=${bam.simpleName}.markdup.bam \
     O=${bam.simpleName}.markdup.bam.bai
+
+  mapped_reads_postdup=\$(samtools view -c -F 260 ${bam.simpleName}.markdup.bam)
+  pct_dup=\$(awk 'BEGIN{FS="\\t"} !/^#/ && /PERCENT_DUPLICATION/ {getline; print \$9; exit}' ${bam.simpleName}.markdup.metrics.txt)
+  if [[ -n "\$pct_dup" ]]; then
+    pct_dup=\$(awk -v x="\$pct_dup" 'BEGIN{printf "%.2f", x*100}')
+  else
+    pct_dup=NA
+  fi
+
+  cat > ${bam.simpleName}.picard_qc.stats.tsv << TSV
+sample_id	output_bam	mapped_reads_postdup	pct_duplicates
+${bam.simpleName}	${bam.simpleName}.markdup.bam	\$mapped_reads_postdup	\$pct_dup
+TSV
   """
 }
 
@@ -59,7 +73,8 @@ process dedup_bam {
     tuple val(bam.simpleName),
           path("${bam.simpleName}.dedup.bam"),
           path("${bam.simpleName}.dedup.bam.bai"),
-          path("${bam.simpleName}.dedup.metrics.txt")
+          path("${bam.simpleName}.dedup.metrics.txt"),
+          path("${bam.simpleName}.picard_qc.stats.tsv")
 
   script:
   """
@@ -83,6 +98,19 @@ process dedup_bam {
   picard BuildBamIndex \
     I=${bam.simpleName}.dedup.bam \
     O=${bam.simpleName}.dedup.bam.bai
+
+  mapped_reads_postdup=\$(samtools view -c -F 260 ${bam.simpleName}.dedup.bam)
+  pct_dup=\$(awk 'BEGIN{FS="\\t"} !/^#/ && /PERCENT_DUPLICATION/ {getline; print \$9; exit}' ${bam.simpleName}.dedup.metrics.txt)
+  if [[ -n "\$pct_dup" ]]; then
+    pct_dup=\$(awk -v x="\$pct_dup" 'BEGIN{printf "%.2f", x*100}')
+  else
+    pct_dup=NA
+  fi
+
+  cat > ${bam.simpleName}.picard_qc.stats.tsv << TSV
+sample_id	output_bam	mapped_reads_postdup	pct_duplicates
+${bam.simpleName}	${bam.simpleName}.dedup.bam	\$mapped_reads_postdup	\$pct_dup
+TSV
   """
 }
 
@@ -189,8 +217,8 @@ workflow {
     }
 
   def report_input = do_dedup \
-    ? dedup_bam(sorted_bams).map { sample_id, bam, bai, metrics -> tuple(sample_id, bam) } \
-    : mark_duplicates(sorted_bams).map { sample_id, bam, bai, metrics -> tuple(sample_id, bam) }
+    ? dedup_bam(sorted_bams).map { sample_id, bam, bai, metrics, qcstats -> tuple(sample_id, bam) } \
+    : mark_duplicates(sorted_bams).map { sample_id, bam, bai, metrics, qcstats -> tuple(sample_id, bam) }
 
   insert_size(report_input)
 
